@@ -1,53 +1,48 @@
 const fs = require('fs');
-const path = require('path');
 const { v4: uuidv4 } = require('uuid');
-
-
-// LOAD DATA
-
-const noteDB = require('../db/db.json');
 
 // ROUTING
 
 module.exports = (app) => {
   // API GET Requests
 
-  app.get('/api/notes', (req, res) => res.json(noteDB));
+  app.get('/api/notes', (req, res) => (req, res) => {
+    fs.readfile('./db/db.json', (err, data) => {
+      if (err) throw err;
+      res.json(JSON.parse(data));
+    });
+  });
 
   // API POST Requests
 
-  app.post('/api/notes', (req, res) => {
-    let newNote = req.body;
-    newNote.id = uuidv4();
-    data.push(newNote)
-    fs.writeFileSync('./db/db.json', JSON.stringify(noteDB))
-    res.json(noteDB)
-    console.log("Note added successfully!")
+    app.post("/api/notes", (req, res) => {
+        let newNote = req.body;
+        newNote.id = uuidv4();
+        fs.readFile('./db/db.json', (err, data) => {
+            if (err) throw err;
+            let notes = JSON.parse(data);
+            notes.push(newNote);
+            fs.writeFile('./db/db.json', JSON.stringify(notes), (err) => {
+                if (err) throw err;
+                res.json(notes);
+            });
+        });
     });
 
   // API DELETE Requests
 
-  app.delete('/api/notes/:id', function (req, res) {
-    let id = req.params.id
-    const select = noteDB.find(note => note.id === id)
-
-    if (id === select.id){
-      data.splice(data.indexOf(select),1)
-      fs.writeFileSync('./db/db.json', JSON.stringify(noteDB))
-    }
-    res.json(noteDB)
-    console.log("Note successfully deleted!")
-  })
-}
-
-  // I added this below code so you could clear out the table while working with the functionality.
-  // Don"t worry about it!
-
-  app.post('/api/clear', (req, res) => {
-    // Empty out the arrays of data
-    tableData.length = 0;
-    waitLisnpmtData.length = 0;
-
-    res.json({ ok: true });
-  });
+app.delete("/api/notes/:id", (req, res) => {
+        const id = req.params.id;
+        fs.readFile('./db/db.json', (err, data) => {
+            if (err) throw err;
+            const notes = JSON.parse(data);
+            let notesArr = notes.filter((note) => {
+                return id !== note.id;
+            })
+            fs.writeFile('./db/db.json', JSON.stringify(notesArr), (err) => {
+                if (err) throw err;
+                res.json(notesArr);
+            });
+        });
+    });
 };
